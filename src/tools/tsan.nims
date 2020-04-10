@@ -1,5 +1,8 @@
 
-if defined(EnableTSAN):
-  echo "Enabling TSAN..."
+when defined(EnableLLVMCompiler):
+  when defined(EnableTSAN):
+    echo "Enabling TSAN..."
+  else:
+    echo "Skipping TSAN..."
 else:
-  echo "Skipping TSAN..."
+  echo ""

@@ -1,5 +1,9 @@
 
 switch "define", "EnableASAN"
+switch "define", "EnableTSAN"
 
+echo "$nimblePath/"
 
-include "~/Projects/Personal/nim-llvm/src/llvm.nims"
+import "~/Projects/Personal/nim-llvm/src/llvm.nims"
+
+addCompilerFlags @["-Werror"]
