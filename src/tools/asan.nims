@@ -1,8 +1,10 @@
 
+# ==========
+# Main Entry
+# ==========
+
 when defined(EnableLLVMCompiler):
   when defined(EnableASAN):
     echo "Enabling ASAN..."
-  else:
-    echo "Skipping ASAN..."
-else:
-  echo ""
+    switch("passC", "-fsanitize=address")
+    switch("passL", "-lclang_rt.asan")

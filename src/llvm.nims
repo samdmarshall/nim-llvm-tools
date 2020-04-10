@@ -1,18 +1,44 @@
 mode = ScriptMode.Verbose
 
+# =======
+# Imports
+# =======
+
+import sequtils
+import strutils
+
+# =====
+# Types
+# =====
+
+type
+  Xclang*  = distinct string
+  Xlinker* = distinct string  
+
+# ================
+# Global Variables
+# ================
+
+
+
 # =========
 # Functions
 # =========
 
-proc addCompilerFlags*(flags: seq[string]) =
-  echo flags
+proc `$`(col: seq[Xclang|Xlinker]): string =
+  result = col.join(" ")
 
-proc addLinkerFlags*(flags: seq[string]) = 
-  echo flags
+proc `-Xclang`*(flags: seq[string]): seq[Xclang]=
+  for flag in flags:
+    let tokens = toSeq(tokenize(flag))
+
+proc `-Xlinker`*(flags: seq[string]): seq[Xlinker]=
+  for flag in flags:
+    let tokens = toSeq(tokenize(flag))
 
 
 # ==========
-# LLVM Tools
+# Main Entry
 # ==========
 
 #[ 
