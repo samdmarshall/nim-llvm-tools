@@ -4,66 +4,87 @@ mode = ScriptMode.Verbose
 # Imports
 # =======
 
-import sequtils
+import os
 import strutils
 
-# =====
-# Types
-# =====
 
-type
-  Xclang*  = distinct string
-  Xlinker* = distinct string  
-
-# ================
-# Global Variables
-# ================
-
-
+const
+  LibraryName_AddressSanitizer = "clang_rt.asan"
+  LibraryName_ThreadSanitizer = "clang_rt.tsan"
+  LibraryName_MemorySanitizer = "clang_rt.msan"
+  LibraryName_UndefinedBehaviorSanitizer = "clang_rt.ubsan"
 
 # =========
 # Functions
 # =========
 
-proc `$`(col: seq[Xclang|Xlinker]): string =
-  result = col.join(" ")
+proc normalizeLibraryName(name: string): seq[string] =
+  result = name
+  if name.startsWith("lib"):
+    result.removePrefix("lib")
 
-proc `-Xclang`*(flags: seq[string]): seq[Xclang]=
-  for flag in flags:
-    let tokens = toSeq(tokenize(flag))
+proc findLibrary(path: string, libname: string): string =
+  let starting_directory = normalizedPath(path
+  let library_name = normalizeLibraryName(libname)
+  
+  let is_valid_directory_path = existsDir(starting_directory)
+  assert is_valid_directory_path, msg = ""
 
-proc `-Xlinker`*(flags: seq[string]): seq[Xlinker]=
-  for flag in flags:
-    let tokens = toSeq(tokenize(flag))
+  for kind, path in walkDir(starting_directory):
+
+    case kind
+    of pcDir:
+      discard
+    of pcLinkToDir:
+      discard
+    else:
+
 
 
 # ==========
 # Main Entry
 # ==========
 
-#[ 
-  Uses the flag:
-    --define:EnableLLVMCompiler
+when defined(EnableLLVMCompiler):
 
-  This enable the use of the LLVM compiler tools (installed separately) as the 
-    compiler instead of whatever the system default is. Since this is the last
-    of the config files used, it should override any existing setting. 
-]#
-include "tools/compiler.nims"
+  let path_clang = findExe(bin="clang")
+  let exe_clang = extractFilename(path_clang)
+  
 
+  
+  let paths_library_asan = findLibrary(LibraryName_AddressSanitizer, "")
+  let paths_library_tsan = findLibrary(LibraryName_ThreadSanitizer, "")
+  let paths_library_msan = findLibrary(LibraryName_MemorySanitizer, "")
+  let paths_library_ubsan = findLibrary(LibraryName_UndefinedBehaviorSanitizer, "")
 
-#[
-  Uses the flag:
-    --define:EnableASAN
+  # =================
+  # Address Sanitizer
+  # =================
+  when defined(EnableASAN):
+    echo "Enabling ASAN..."
+    switch("passC", "-fsanitize=address")
+    switch("passL", "-lclang_rt.asan")
 
-  This enables the use of the LLVM Address Sanatizer when building. This should
-    only be included as part of Debug builds. Enabling this option requires that
-    the 
-]#
-include "tools/asan.nims"
+  # ================
+  # Thread Sanitizer
+  # ================
+  when defined(EnableTSAN):
+    echo "Enabling TSAN..."
+    switch("passC", "-fsanitize=thread")
+    switch("passL", "-lclang_rt.tsan")
 
-#[
-  Uses the flag:
-    --define:EnableTSAN
-]#
-include "tools/tsan.nims"
+  # ================
+  # Memory Sanitizer
+  # ================
+  when defined(EnableMSAN):
+    echo "Enabling MSAN..."
+    switch("passC", "-fsanitize=memory")
+    
+
+  # ============================
+  # Undefined Behavior Sanitizer
+  # ============================
+  when defined(EnableUBSAN):
+    echo "Enabling UBSAN..."
+    switch("passC", "-fsanitize=undefined")
+    switch("passL", "-lclang_rt.ubsan")

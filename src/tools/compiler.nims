@@ -4,6 +4,7 @@
 # =======
 
 import os
+import strutils
 
 # ==========
 # Main Entry
@@ -11,24 +12,31 @@ import os
 
 when defined(EnableLLVMCompiler):
 
-  let cc_path = findExe(bin="clang")
-  let cpp_path = findExe(bin="clang++")
+  let path_llvmconfig = findExe(bin="llvm-config")
+  let has_llvm_installed = (path_llvmconfig != "")
 
-  let cc = extractFilename(cc_path)
-  let cpp = extractFilename(cpp_path)
+  let path_clang = findExe(bin="clang")
+  let exe_clang = extractFilename(path_clang)
+  let version_clang = gorge("$command --version" % ["command", exe_clang])
+  echo version_clang
+
+  let path_clangpp = findExe(bin="clang++")
+  let exe_clangpp = extractFilename(path_clangpp)
+  let version_clangpp = gorge("$command --version" % ["command", exe_clangpp])
+  echo version_clangpp
+
+  let library_path = gorge(exe_clang & " --print-resource-dir")
 
   let command = getCommand()
   case command
   of "c":
-    switch("cc", cc)
+    switch("cc", exe_clang)
   of "cpp":
-    switch("cc", cpp)
+    switch("cc", exe_clangpp)
   of "js":
     assert false, msg = "The LLVM compiler is not supported when targeting Javascript!"
   else:
-    switch("cc", cc)
+    switch("cc", exe_clang)
 
-  let library_path = gorge(cc_path & " --print-resource-dir")
-  echo library_path
 
   
